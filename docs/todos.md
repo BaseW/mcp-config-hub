@@ -1,5 +1,6 @@
 # TODOs
 
+- Search about configuration method for each target(VSCode, ChatGPT, etc.)
 - Basic CLI structure
 - Command for getting a value
 - Command for setting a value
