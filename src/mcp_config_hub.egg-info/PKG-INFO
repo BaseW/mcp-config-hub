@@ -1,3 +1,18 @@
+Metadata-Version: 2.4
+Name: mcp-config-hub
+Version: 0.1.0
+Summary: CLI tool for managing MCP server settings
+Author-email: BaseW <wadayugo@keio.jp>
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: click>=8.0.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: tomli>=2.0.0; python_version < "3.11"
+Requires-Dist: tomli-w>=1.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+
 # MCP Config Hub
 
 CLI tool for managing MCP server settings.

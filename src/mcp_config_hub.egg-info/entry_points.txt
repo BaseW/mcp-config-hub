@@ -1,0 +1,2 @@
+[console_scripts]
+mcp-config = mcp_config_hub.cli:cli
