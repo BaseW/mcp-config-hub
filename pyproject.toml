@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-config-hub"
+version = "0.1.0"
+description = "CLI tool for managing MCP server settings"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "BaseW", email = "wadayugo@keio.jp"}
+]
+dependencies = [
+    "click>=8.0.0",
+    "pyyaml>=6.0",
+    "tomli>=2.0.0; python_version<'3.11'",
+    "tomli-w>=1.0.0",
+]
+
+[project.scripts]
+mcp-config = "mcp_config_hub.cli:cli"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
