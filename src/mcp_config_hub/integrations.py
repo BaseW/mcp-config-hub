@@ -174,50 +174,6 @@ class ClaudeDesktopIntegration(BaseIntegration):
         return {"mcpServers": {}}
 
 
-class ChatGPTIntegration(BaseIntegration):
-    """Integration with ChatGPT configuration.
-    
-    WARNING: No official MCP server configuration documentation found for ChatGPT.
-    This integration is experimental and may not work as expected.
-    """
-    
-    def __init__(self):
-        self.system = platform.system()
-        click.echo("Warning: ChatGPT MCP integration is experimental - no official documentation found.", err=True)
-    
-    def get_config_path(self) -> Path:
-        """Get ChatGPT config path (experimental)."""
-        if self.system == "Darwin":
-            base = Path.home() / "Library" / "Application Support" / "ChatGPT"
-        elif self.system == "Windows":
-            base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "ChatGPT"
-        else:
-            base = Path.home() / ".config" / "ChatGPT"
-        
-        return base / "config.json"
-    
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
-        """Sync MCP servers to ChatGPT config."""
-        chatgpt_config = self.read_config()
-        
-        if "mcpServers" in hub_config:
-            chatgpt_config["mcpServers"] = hub_config["mcpServers"]
-        
-        self.write_config(chatgpt_config)
-    
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
-        """Apply hub configuration to ChatGPT config."""
-        if "mcpServers" in hub_config:
-            config["mcpServers"] = hub_config["mcpServers"]
-    
-    def sync_to_hub(self) -> Dict[str, Any]:
-        """Extract MCP configuration from ChatGPT config."""
-        chatgpt_config = self.read_config()
-        
-        if "mcpServers" in chatgpt_config:
-            return {"mcpServers": chatgpt_config["mcpServers"]}
-        
-        return {"mcpServers": {}}
 
 
 def get_integration(tool_name: str) -> BaseIntegration:
@@ -225,7 +181,6 @@ def get_integration(tool_name: str) -> BaseIntegration:
     integrations = {
         'vscode': VSCodeIntegration,
         'claude': ClaudeDesktopIntegration,
-        'chatgpt': ChatGPTIntegration,
     }
     
     if tool_name not in integrations:

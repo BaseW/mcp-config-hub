@@ -22,21 +22,14 @@
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 - Configuration format: `{ "mcpServers": { ... } }`
 
-## ChatGPT MCP Server Configuration
+## Gemini CLI MCP Server Configuration
 
-**Status:** No official MCP server configuration documentation found for ChatGPT as of current research. This integration may be experimental or not yet officially supported.
+**Official Documentation:** https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md
 
-**Experimental Configuration Paths:**
-- **macOS:** `~/Library/Application Support/ChatGPT/config.json`
-- **Linux:** `~/.config/ChatGPT/config.json`
-- **Windows:** `%APPDATA%\ChatGPT\config.json`
-- **Experimental format:** `{ "mcpServers": { ... } }`
-
-## Gemini CLI
-
-**Status:** No official MCP server configuration documentation found for Gemini CLI.
-
-**General Configuration Paths:**
-- The configuration file is typically located at `~/.gemini/settings.json`.
-- Project-specific configurations can be created by placing a `.gemini/settings.json` file in the project's root directory.
-- **Note:** MCP server configuration format unknown for this tool.
+- **User Settings:** Global MCP server configuration
+  - **Location:** `~/.gemini/settings.json`
+  - **Scope:** Applies to all Gemini CLI sessions for the current user
+- **Project Settings:** Project-specific MCP server configuration
+  - **Location:** `<project-root>/.gemini/settings.json`
+  - **Scope:** Applies only when running Gemini CLI from that specific project (overrides user settings)
+- **Configuration format:** `{ "mcpServers": { ... } }`
