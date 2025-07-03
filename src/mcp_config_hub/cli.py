@@ -94,7 +94,8 @@ def sync():
 @click.option('--direction', default='from-hub', 
               type=click.Choice(['from-hub', 'to-hub']),
               help='Sync direction')
-def vscode(direction):
+@click.option('--force', is_flag=True, help='Skip confirmation prompt')
+def vscode(direction, force):
     """Sync with VSCode settings."""
     try:
         storage = StorageManager()
@@ -103,8 +104,15 @@ def vscode(direction):
         
         if direction == 'from-hub':
             hub_config = config_manager.list_all('merged')
-            integration.sync_from_hub(hub_config)
-            click.echo("Synced MCP Config Hub settings to VSCode")
+            if force:
+                integration.sync_from_hub(hub_config)
+                click.echo("Synced MCP Config Hub settings to VSCode")
+            else:
+                success = integration.sync_from_hub_with_confirmation(hub_config, 'VSCode')
+                if success:
+                    click.echo("Synced MCP Config Hub settings to VSCode")
+                else:
+                    click.echo("Sync cancelled by user")
         else:
             hub_config = integration.sync_to_hub()
             for key, value in hub_config.get('mcpServers', {}).items():
@@ -120,7 +128,8 @@ def vscode(direction):
 @click.option('--direction', default='from-hub', 
               type=click.Choice(['from-hub', 'to-hub']),
               help='Sync direction')
-def claude(direction):
+@click.option('--force', is_flag=True, help='Skip confirmation prompt')
+def claude(direction, force):
     """Sync with Claude Desktop configuration."""
     try:
         storage = StorageManager()
@@ -129,8 +138,15 @@ def claude(direction):
         
         if direction == 'from-hub':
             hub_config = config_manager.list_all('merged')
-            integration.sync_from_hub(hub_config)
-            click.echo("Synced MCP Config Hub settings to Claude Desktop")
+            if force:
+                integration.sync_from_hub(hub_config)
+                click.echo("Synced MCP Config Hub settings to Claude Desktop")
+            else:
+                success = integration.sync_from_hub_with_confirmation(hub_config, 'Claude Desktop')
+                if success:
+                    click.echo("Synced MCP Config Hub settings to Claude Desktop")
+                else:
+                    click.echo("Sync cancelled by user")
         else:
             hub_config = integration.sync_to_hub()
             for key, value in hub_config.get('mcpServers', {}).items():
@@ -146,7 +162,8 @@ def claude(direction):
 @click.option('--direction', default='from-hub', 
               type=click.Choice(['from-hub', 'to-hub']),
               help='Sync direction')
-def chatgpt(direction):
+@click.option('--force', is_flag=True, help='Skip confirmation prompt')
+def chatgpt(direction, force):
     """Sync with ChatGPT configuration."""
     try:
         storage = StorageManager()
@@ -155,8 +172,15 @@ def chatgpt(direction):
         
         if direction == 'from-hub':
             hub_config = config_manager.list_all('merged')
-            integration.sync_from_hub(hub_config)
-            click.echo("Synced MCP Config Hub settings to ChatGPT")
+            if force:
+                integration.sync_from_hub(hub_config)
+                click.echo("Synced MCP Config Hub settings to ChatGPT")
+            else:
+                success = integration.sync_from_hub_with_confirmation(hub_config, 'ChatGPT')
+                if success:
+                    click.echo("Synced MCP Config Hub settings to ChatGPT")
+                else:
+                    click.echo("Sync cancelled by user")
         else:
             hub_config = integration.sync_to_hub()
             for key, value in hub_config.get('mcpServers', {}).items():

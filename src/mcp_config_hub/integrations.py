@@ -3,6 +3,8 @@ import os
 import platform
 from pathlib import Path
 from typing import Dict, Any, Optional
+import click
+from .diff_utils import generate_config_diff, has_changes
 
 
 class BaseIntegration:
@@ -36,6 +38,33 @@ class BaseIntegration:
         """Sync configuration from MCP Config Hub to this tool."""
         raise NotImplementedError
     
+    def sync_from_hub_with_confirmation(self, hub_config: Dict[str, Any], tool_name: str) -> bool:
+        """Sync configuration with diff display and user confirmation."""
+        current_config = self.read_config()
+        
+        new_config = current_config.copy()
+        self._apply_hub_config(new_config, hub_config)
+        
+        if not has_changes(current_config, new_config):
+            click.echo(f"No changes needed for {tool_name} configuration.")
+            return True
+        
+        diff = generate_config_diff(current_config, new_config, tool_name)
+        if diff:
+            click.echo(f"\nProposed changes to {tool_name} configuration:")
+            click.echo(diff)
+        
+        if click.confirm(f"\nApply these changes to {tool_name}?"):
+            self.write_config(new_config)
+            return True
+        else:
+            click.echo("Changes cancelled.")
+            return False
+    
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        """Apply hub configuration to the target config. Override in subclasses."""
+        raise NotImplementedError
+    
     def sync_to_hub(self) -> Dict[str, Any]:
         """Sync configuration from this tool to MCP Config Hub format."""
         raise NotImplementedError
@@ -66,6 +95,11 @@ class VSCodeIntegration(BaseIntegration):
             vscode_config["mcp.servers"] = hub_config["mcpServers"]
         
         self.write_config(vscode_config)
+    
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        """Apply hub configuration to VSCode settings."""
+        if "mcpServers" in hub_config:
+            config["mcp.servers"] = hub_config["mcpServers"]
     
     def sync_to_hub(self) -> Dict[str, Any]:
         """Extract MCP configuration from VSCode settings."""
@@ -103,6 +137,11 @@ class ClaudeDesktopIntegration(BaseIntegration):
         
         self.write_config(claude_config)
     
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        """Apply hub configuration to Claude Desktop config."""
+        if "mcpServers" in hub_config:
+            config["mcpServers"] = hub_config["mcpServers"]
+    
     def sync_to_hub(self) -> Dict[str, Any]:
         """Extract MCP configuration from Claude Desktop config."""
         claude_config = self.read_config()
@@ -138,6 +177,11 @@ class ChatGPTIntegration(BaseIntegration):
             chatgpt_config["mcpServers"] = hub_config["mcpServers"]
         
         self.write_config(chatgpt_config)
+    
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        """Apply hub configuration to ChatGPT config."""
+        if "mcpServers" in hub_config:
+            config["mcpServers"] = hub_config["mcpServers"]
     
     def sync_to_hub(self) -> Dict[str, Any]:
         """Extract MCP configuration from ChatGPT config."""
