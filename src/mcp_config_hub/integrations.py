@@ -71,7 +71,7 @@ class BaseIntegration:
 
 
 class VSCodeIntegration(BaseIntegration):
-    """Integration with VSCode settings."""
+    """Integration with VSCode MCP server settings."""
     
     def __init__(self):
         self.system = platform.system()
@@ -87,26 +87,48 @@ class VSCodeIntegration(BaseIntegration):
         
         return base / "settings.json"
     
+    def get_workspace_config_path(self) -> Path:
+        """Get VSCode workspace MCP config path."""
+        return Path.cwd() / ".vscode" / "mcp.json"
+    
+    def read_config(self) -> Dict[str, Any]:
+        """Read configuration from VSCode settings, preferring workspace over user."""
+        workspace_config_path = self.get_workspace_config_path()
+        if workspace_config_path.exists():
+            try:
+                with open(workspace_config_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+        
+        user_config = super().read_config()
+        return user_config.get("mcp", {})
+    
+    def write_config(self, config: Dict[str, Any]) -> None:
+        """Write configuration to VSCode workspace mcp.json."""
+        workspace_config_path = self.get_workspace_config_path()
+        workspace_config_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(workspace_config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+    
     def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
-        """Sync MCP servers to VSCode settings."""
-        vscode_config = self.read_config()
-        
+        """Sync MCP servers to VSCode workspace config."""
         if "mcpServers" in hub_config:
-            vscode_config["mcp.servers"] = hub_config["mcpServers"]
-        
-        self.write_config(vscode_config)
+            vscode_config = {"servers": hub_config["mcpServers"]}
+            self.write_config(vscode_config)
     
     def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
-        """Apply hub configuration to VSCode settings."""
+        """Apply hub configuration to VSCode MCP config."""
         if "mcpServers" in hub_config:
-            config["mcp.servers"] = hub_config["mcpServers"]
+            config["servers"] = hub_config["mcpServers"]
     
     def sync_to_hub(self) -> Dict[str, Any]:
         """Extract MCP configuration from VSCode settings."""
         vscode_config = self.read_config()
         
-        if "mcp.servers" in vscode_config:
-            return {"mcpServers": vscode_config["mcp.servers"]}
+        if "servers" in vscode_config:
+            return {"mcpServers": vscode_config["servers"]}
         
         return {"mcpServers": {}}
 
@@ -152,45 +174,6 @@ class ClaudeDesktopIntegration(BaseIntegration):
         return {"mcpServers": {}}
 
 
-class ChatGPTIntegration(BaseIntegration):
-    """Integration with ChatGPT configuration."""
-    
-    def __init__(self):
-        self.system = platform.system()
-    
-    def get_config_path(self) -> Path:
-        """Get ChatGPT config path."""
-        if self.system == "Darwin":
-            base = Path.home() / "Library" / "Application Support" / "ChatGPT"
-        elif self.system == "Windows":
-            base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "ChatGPT"
-        else:
-            base = Path.home() / ".config" / "ChatGPT"
-        
-        return base / "config.json"
-    
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
-        """Sync MCP servers to ChatGPT config."""
-        chatgpt_config = self.read_config()
-        
-        if "mcpServers" in hub_config:
-            chatgpt_config["mcpServers"] = hub_config["mcpServers"]
-        
-        self.write_config(chatgpt_config)
-    
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
-        """Apply hub configuration to ChatGPT config."""
-        if "mcpServers" in hub_config:
-            config["mcpServers"] = hub_config["mcpServers"]
-    
-    def sync_to_hub(self) -> Dict[str, Any]:
-        """Extract MCP configuration from ChatGPT config."""
-        chatgpt_config = self.read_config()
-        
-        if "mcpServers" in chatgpt_config:
-            return {"mcpServers": chatgpt_config["mcpServers"]}
-        
-        return {"mcpServers": {}}
 
 
 def get_integration(tool_name: str) -> BaseIntegration:
@@ -198,7 +181,6 @@ def get_integration(tool_name: str) -> BaseIntegration:
     integrations = {
         'vscode': VSCodeIntegration,
         'claude': ClaudeDesktopIntegration,
-        'chatgpt': ChatGPTIntegration,
     }
     
     if tool_name not in integrations:
