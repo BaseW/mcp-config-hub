@@ -33,3 +33,45 @@
   - **Location:** `<project-root>/.gemini/settings.json`
   - **Scope:** Applies only when running Gemini CLI from that specific project (overrides user settings)
 - **Configuration format:** `{ "mcpServers": { ... } }`
+
+## Cursor MCP Server Configuration
+
+**Official Documentation:** https://docs.cursor.com/context/mcp
+
+- **Global:** `~/.cursor/mcp.json` (macOS/Linux), `%USERPROFILE%\.cursor\mcp.json` (Windows)
+- **Project:** `.cursor/mcp.json` in the project root
+- **Configuration format:**
+
+```json
+{
+  "mcpServers": {
+    "sample-server": {
+      "command": "npx",
+      "args": ["-y", "mcp-server"],
+      "env": {
+        "API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+## Windsurf MCP Server Configuration
+
+**Official Documentation:** https://docs.windsurf.com/windsurf/cascade/mcp
+
+- **Location:** `~/.codeium/windsurf/mcp_config.json`
+- **Configuration format:**
+
+```json
+{
+  "mcpServers": {
+    "spinach": {
+      "command": "npx",
+      "args": ["-y", "@spinach.ai/spinach-mcp-stdio-server@latest"],
+      "env": { "API_KEY": "<YOUR API KEY FROM SPINACH>" }
+    }
+  }
+}
+```
+- Each server is listed under `mcpServers`. `command`/`args` for local, `serverUrl` for remote servers.
