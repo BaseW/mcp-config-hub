@@ -174,6 +174,128 @@ class ClaudeDesktopIntegration(BaseIntegration):
         return {"mcpServers": {}}
 
 
+class CursorIntegration(BaseIntegration):
+    """Integration with Cursor MCP server settings."""
+    def __init__(self):
+        self.system = platform.system()
+
+    def get_config_path(self) -> Path:
+        if self.system == "Windows":
+            base = Path(os.environ.get("USERPROFILE", Path.home())) / ".cursor"
+        else:
+            base = Path.home() / ".cursor"
+        # Prefer project config if exists
+        project_config = Path.cwd() / ".cursor" / "mcp.json"
+        if project_config.exists():
+            return project_config
+        return base / "mcp.json"
+
+    def read_config(self) -> Dict[str, Any]:
+        config = super().read_config()
+        return config
+
+    def write_config(self, config: Dict[str, Any]) -> None:
+        config_path = self.get_config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+        if "mcpServers" in hub_config:
+            cursor_config = {"mcpServers": hub_config["mcpServers"]}
+            self.write_config(cursor_config)
+
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        if "mcpServers" in hub_config:
+            config["mcpServers"] = hub_config["mcpServers"]
+
+    def sync_to_hub(self) -> Dict[str, Any]:
+        config = self.read_config()
+        if "mcpServers" in config:
+            return {"mcpServers": config["mcpServers"]}
+        return {"mcpServers": {}}
+
+class WindsurfIntegration(BaseIntegration):
+    """Integration with Windsurf MCP server settings."""
+    def __init__(self):
+        self.system = platform.system()
+
+    def get_config_path(self) -> Path:
+        # Only user-level config is documented
+        if self.system == "Windows":
+            base = Path(os.environ.get("USERPROFILE", Path.home())) / ".codeium" / "windsurf"
+        else:
+            base = Path.home() / ".codeium" / "windsurf"
+        return base / "mcp_config.json"
+
+    def read_config(self) -> Dict[str, Any]:
+        config = super().read_config()
+        return config
+
+    def write_config(self, config: Dict[str, Any]) -> None:
+        config_path = self.get_config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+        if "mcpServers" in hub_config:
+            windsurf_config = {"mcpServers": hub_config["mcpServers"]}
+            self.write_config(windsurf_config)
+
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        if "mcpServers" in hub_config:
+            config["mcpServers"] = hub_config["mcpServers"]
+
+    def sync_to_hub(self) -> Dict[str, Any]:
+        config = self.read_config()
+        if "mcpServers" in config:
+            return {"mcpServers": config["mcpServers"]}
+        return {"mcpServers": {}}
+
+class GeminiIntegration(BaseIntegration):
+    """Integration with Gemini CLI MCP server settings."""
+    def __init__(self):
+        self.system = platform.system()
+
+    def get_config_path(self) -> Path:
+        # Prefer project config if exists
+        project_config = Path.cwd() / ".gemini" / "settings.json"
+        if project_config.exists():
+            return project_config
+        # User-level config
+        if self.system == "Windows":
+            base = Path(os.environ.get("USERPROFILE", Path.home())) / ".gemini"
+        else:
+            base = Path.home() / ".gemini"
+        return base / "settings.json"
+
+    def read_config(self) -> Dict[str, Any]:
+        config = super().read_config()
+        return config
+
+    def write_config(self, config: Dict[str, Any]) -> None:
+        config_path = self.get_config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+        if "mcpServers" in hub_config:
+            gemini_config = {"mcpServers": hub_config["mcpServers"]}
+            self.write_config(gemini_config)
+
+    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+        if "mcpServers" in hub_config:
+            config["mcpServers"] = hub_config["mcpServers"]
+
+    def sync_to_hub(self) -> Dict[str, Any]:
+        config = self.read_config()
+        if "mcpServers" in config:
+            return {"mcpServers": config["mcpServers"]}
+        return {"mcpServers": {}}
+
+
 
 
 def get_integration(tool_name: str) -> BaseIntegration:
@@ -181,6 +303,9 @@ def get_integration(tool_name: str) -> BaseIntegration:
     integrations = {
         'vscode': VSCodeIntegration,
         'claude': ClaudeDesktopIntegration,
+        'cursor': CursorIntegration,
+        'windsurf': WindsurfIntegration,
+        'gemini': GeminiIntegration,
     }
     
     if tool_name not in integrations:
