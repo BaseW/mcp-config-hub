@@ -1,5 +1,6 @@
 import click
 import sys
+import json
 from .config import ConfigManager
 from .storage import StorageManager
 from .formatters import get_formatter
@@ -79,6 +80,56 @@ def list(output_format, scope):
         formatter = get_formatter(output_format)
         click.echo(formatter.format(config))
         
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument('key')
+@click.option('--scope', default='user', 
+              type=click.Choice(['global', 'user', 'project']),
+              help='Configuration scope')
+@click.option('--force', is_flag=True, help='Skip confirmation prompt')
+def delete(key, scope, force):
+    """Delete configuration value by key (supports dot notation)."""
+    try:
+        storage = StorageManager()
+        config_manager = ConfigManager(storage)
+        
+        current_config = config_manager.list_all(scope)
+        # 仮想的に削除後の設定を作成
+        import copy
+        new_config = copy.deepcopy(current_config)
+        keys = key.split('.')
+        current = new_config
+        for k in keys[:-1]:
+            if k not in current or not isinstance(current[k], dict):
+                current = None
+                break
+            current = current[k]
+        if current is not None and keys[-1] in current:
+            del current[keys[-1]]
+        else:
+            click.echo(f"Key '{key}' not found in {scope} configuration", err=True)
+            sys.exit(1)
+        from .diff_utils import generate_config_diff
+        diff = generate_config_diff(current_config, new_config, f"{scope} config")
+        if diff:
+            click.echo(diff)
+        else:
+            click.echo('No difference found.')
+        if not force:
+            c = click.confirm(f"Delete '{key}' from {scope} configuration?", default=False)
+            if not c:
+                click.echo("Delete cancelled by user")
+                sys.exit(0)
+        removed = config_manager.delete(key, scope)
+        if removed:
+            click.echo(f"Deleted {key} from {scope} configuration")
+        else:
+            click.echo(f"Key '{key}' not found in {scope} configuration", err=True)
+            sys.exit(1)
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
