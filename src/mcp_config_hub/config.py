@@ -25,6 +25,21 @@ class ConfigManager:
         self._set_nested_value(config, key, value)
         self.storage.save_config(config, scope)
     
+    def delete(self, key: str, scope: str = "user") -> bool:
+        """Delete configuration value by key with dot notation. Returns True if deleted, False if not found."""
+        config = self.storage.load_config(scope)
+        keys = key.split('.')
+        current = config
+        for k in keys[:-1]:
+            if k not in current or not isinstance(current[k], dict):
+                return False
+            current = current[k]
+        if keys[-1] in current:
+            del current[keys[-1]]
+            self.storage.save_config(config, scope)
+            return True
+        return False
+    
     def list_all(self, scope: str = "merged") -> Dict[str, Any]:
         """List all configuration values."""
         if scope == "merged":
