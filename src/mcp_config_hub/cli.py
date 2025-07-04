@@ -214,29 +214,97 @@ def claude(direction, force):
               type=click.Choice(['from-hub', 'to-hub']),
               help='Sync direction')
 @click.option('--force', is_flag=True, help='Skip confirmation prompt')
-def chatgpt(direction, force):
-    """Sync with ChatGPT configuration."""
+def cursor(direction, force):
+    """Sync with Cursor MCP server settings."""
     try:
         storage = StorageManager()
         config_manager = ConfigManager(storage)
-        integration = get_integration('chatgpt')
+        integration = get_integration('cursor')
         
         if direction == 'from-hub':
             hub_config = config_manager.list_all('merged')
             if force:
                 integration.sync_from_hub(hub_config)
-                click.echo("Synced MCP Config Hub settings to ChatGPT")
+                click.echo("Synced MCP Config Hub settings to Cursor")
             else:
-                success = integration.sync_from_hub_with_confirmation(hub_config, 'ChatGPT')
+                success = integration.sync_from_hub_with_confirmation(hub_config, 'Cursor')
                 if success:
-                    click.echo("Synced MCP Config Hub settings to ChatGPT")
+                    click.echo("Synced MCP Config Hub settings to Cursor")
                 else:
                     click.echo("Sync cancelled by user")
         else:
             hub_config = integration.sync_to_hub()
             for key, value in hub_config.get('mcpServers', {}).items():
                 config_manager.set(f'mcpServers.{key}', value, 'user')
-            click.echo("Synced ChatGPT settings to MCP Config Hub")
+            click.echo("Synced Cursor settings to MCP Config Hub")
+            
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@sync.command()
+@click.option('--direction', default='from-hub', 
+              type=click.Choice(['from-hub', 'to-hub']),
+              help='Sync direction')
+@click.option('--force', is_flag=True, help='Skip confirmation prompt')
+def windsurf(direction, force):
+    """Sync with Windsurf MCP server settings."""
+    try:
+        storage = StorageManager()
+        config_manager = ConfigManager(storage)
+        integration = get_integration('windsurf')
+        
+        if direction == 'from-hub':
+            hub_config = config_manager.list_all('merged')
+            if force:
+                integration.sync_from_hub(hub_config)
+                click.echo("Synced MCP Config Hub settings to Windsurf")
+            else:
+                success = integration.sync_from_hub_with_confirmation(hub_config, 'Windsurf')
+                if success:
+                    click.echo("Synced MCP Config Hub settings to Windsurf")
+                else:
+                    click.echo("Sync cancelled by user")
+        else:
+            hub_config = integration.sync_to_hub()
+            for key, value in hub_config.get('mcpServers', {}).items():
+                config_manager.set(f'mcpServers.{key}', value, 'user')
+            click.echo("Synced Windsurf settings to MCP Config Hub")
+            
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@sync.command()
+@click.option('--direction', default='from-hub', 
+              type=click.Choice(['from-hub', 'to-hub']),
+              help='Sync direction')
+@click.option('--force', is_flag=True, help='Skip confirmation prompt')
+def gemini(direction, force):
+    """Sync with Gemini CLI MCP server settings."""
+    try:
+        storage = StorageManager()
+        config_manager = ConfigManager(storage)
+        integration = get_integration('gemini')
+        
+        if direction == 'from-hub':
+            hub_config = config_manager.list_all('merged')
+            if force:
+                integration.sync_from_hub(hub_config)
+                click.echo("Synced MCP Config Hub settings to Gemini CLI")
+            else:
+                success = integration.sync_from_hub_with_confirmation(hub_config, 'Gemini CLI')
+                if success:
+                    click.echo("Synced MCP Config Hub settings to Gemini CLI")
+                else:
+                    click.echo("Sync cancelled by user")
+        else:
+            hub_config = integration.sync_to_hub()
+            for key, value in hub_config.get('mcpServers', {}).items():
+                config_manager.set(f'mcpServers.{key}', value, 'user')
+            click.echo("Synced Gemini CLI settings to MCP Config Hub")
             
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
