@@ -1,11 +1,10 @@
-# TODO: 一時的に全ブランチでCIを動かす場合は、branches: ["**"] などに変更すること
 name: Quality Check
 
 on:
   push:
-    branches: ["**"]
+    branches: ["master"]
   pull_request:
-    branches: ["**"]
+    branches: ["master"]
 
 jobs:
   quality:
