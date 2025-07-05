@@ -19,7 +19,11 @@ jobs:
         run: pip install uv
       - name: Create venv for uv
         run: uv venv
-      - name: Run quality checks
-        run: bash scripts/quality.sh
+      - name: Activate venv & run quality checks
+        run: |
+          source .venv/bin/activate
+          bash scripts/quality.sh
       - name: Run tests
-        run: uv run pytest --maxfail=1 --disable-warnings -v
+        run: |
+          source .venv/bin/activate
+          uv run pytest --maxfail=1 --disable-warnings -v
