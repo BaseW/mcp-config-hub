@@ -2,12 +2,6 @@ import json
 import sys
 from typing import Any
 
-# NOTE: mypyの型エラー回避のため、try-import内でのみyaml_modを定義
-try:
-    import yaml as yaml_mod
-except ImportError:
-    yaml_mod = None  # type: ignore
-
 tomllib: Any = None
 tomli_w: Any = None
 try:
@@ -49,18 +43,22 @@ class YAMLFormatter(BaseFormatter):
     """YAML output formatter."""
 
     def format(self, data: Any) -> str:
-        if yaml_mod is None:
+        try:
+            import yaml
+        except ImportError:
             raise RuntimeError(
                 "PyYAML is not installed. Install with: pip install pyyaml"
             )
-        return yaml_mod.dump(data, default_flow_style=False, allow_unicode=True)
+        return yaml.dump(data, default_flow_style=False, allow_unicode=True)
 
 
 class TOMLFormatter(BaseFormatter):
     """TOML output formatter."""
 
     def format(self, data: Any) -> str:
-        if tomli_w is None:
+        try:
+            import tomli_w
+        except ImportError:
             raise RuntimeError(
                 "tomli-w is not installed. Install with: pip install tomli-w"
             )
