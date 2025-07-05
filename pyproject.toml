@@ -31,6 +31,7 @@ dev = [
     "isort",
     "bandit",
     "pip-audit",
+    "types-PyYAML",
 ]
 
 [tool.setuptools.packages.find]
