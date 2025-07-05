@@ -2,10 +2,10 @@ import sys
 
 import click
 
-from .config import ConfigManager
-from .formatters import get_formatter
-from .integrations import get_integration
-from .storage import StorageManager
+from mcp_config_hub.config import ConfigManager
+from mcp_config_hub.formatters import get_formatter
+from mcp_config_hub.integrations import get_integration
+from mcp_config_hub.storage import StorageManager
 
 
 @click.group()
@@ -135,7 +135,7 @@ def delete(key, scope, force):
         else:
             click.echo(f"Key '{key}' not found in {scope} configuration", err=True)
             sys.exit(1)
-        from .diff_utils import generate_config_diff
+        from mcp_config_hub.diff_utils import generate_config_diff
 
         diff = generate_config_diff(current_config, new_config, f"{scope} config")
         if diff:
