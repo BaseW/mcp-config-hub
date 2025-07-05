@@ -1,27 +1,32 @@
 import json
 import sys
-from typing import Any, Dict
+from typing import Any
 
-try:
-    import yaml
-except ImportError:
-    yaml = None
-
+tomllib: Any = None
+tomli_w: Any = None
 try:
     if sys.version_info >= (3, 11):
         import tomllib
+
         import tomli_w
     else:
-        import tomli as tomllib
-        import tomli_w
+        import importlib.util
+
+        if importlib.util.find_spec("tomli") is not None:
+            import tomli as _tomli
+
+            tomllib = _tomli
+        if importlib.util.find_spec("tomli_w") is not None:
+            import tomli_w as _tomli_w
+
+            tomli_w = _tomli_w
 except ImportError:
-    tomllib = None
-    tomli_w = None
+    pass
 
 
 class BaseFormatter:
     """Base class for output formatters."""
-    
+
     def format(self, data: Any) -> str:
         """Format data to string representation."""
         raise NotImplementedError
@@ -29,38 +34,46 @@ class BaseFormatter:
 
 class JSONFormatter(BaseFormatter):
     """JSON output formatter."""
-    
+
     def format(self, data: Any) -> str:
         return json.dumps(data, indent=2, ensure_ascii=False)
 
 
 class YAMLFormatter(BaseFormatter):
     """YAML output formatter."""
-    
+
     def format(self, data: Any) -> str:
-        if yaml is None:
-            raise RuntimeError("PyYAML is not installed. Install with: pip install pyyaml")
+        try:
+            import yaml
+        except ImportError:
+            raise RuntimeError(
+                "PyYAML is not installed. Install with: pip install pyyaml"
+            )
         return yaml.dump(data, default_flow_style=False, allow_unicode=True)
 
 
 class TOMLFormatter(BaseFormatter):
     """TOML output formatter."""
-    
+
     def format(self, data: Any) -> str:
-        if tomli_w is None:
-            raise RuntimeError("tomli-w is not installed. Install with: pip install tomli-w")
+        try:
+            import tomli_w
+        except ImportError:
+            raise RuntimeError(
+                "tomli-w is not installed. Install with: pip install tomli-w"
+            )
         return tomli_w.dumps(data)
 
 
 def get_formatter(format_type: str) -> BaseFormatter:
     """Get formatter instance for the specified format type."""
     formatters = {
-        'json': JSONFormatter,
-        'yaml': YAMLFormatter,
-        'toml': TOMLFormatter,
+        "json": JSONFormatter,
+        "yaml": YAMLFormatter,
+        "toml": TOMLFormatter,
     }
-    
+
     if format_type not in formatters:
         raise ValueError(f"Unsupported format: {format_type}")
-    
+
     return formatters[format_type]()

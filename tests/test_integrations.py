@@ -1,11 +1,13 @@
-import os
 import platform
-import tempfile
-import json
-from pathlib import Path
+
 import pytest
+
 from mcp_config_hub.integrations import (
-    VSCodeIntegration, ClaudeDesktopIntegration, CursorIntegration, WindsurfIntegration, GeminiIntegration
+    ClaudeDesktopIntegration,
+    CursorIntegration,
+    GeminiIntegration,
+    VSCodeIntegration,
+    WindsurfIntegration,
 )
 
 
@@ -114,11 +116,11 @@ def test_gemini_apply_hub_config(monkeypatch):
 
 def test_get_integration():
     from mcp_config_hub.integrations import get_integration
+
     assert isinstance(get_integration("vscode"), VSCodeIntegration)
     assert isinstance(get_integration("claude"), ClaudeDesktopIntegration)
     assert isinstance(get_integration("cursor"), CursorIntegration)
     assert isinstance(get_integration("windsurf"), WindsurfIntegration)
     assert isinstance(get_integration("gemini"), GeminiIntegration)
-    import pytest
     with pytest.raises(ValueError):
         get_integration("unknown")
