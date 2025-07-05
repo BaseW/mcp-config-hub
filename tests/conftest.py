@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture(autouse=True)
 def patch_home_and_cwd(tmp_path, monkeypatch):
     # Patch HOME and CWD to tmp_path for isolation

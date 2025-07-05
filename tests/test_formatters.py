@@ -1,11 +1,14 @@
 import pytest
-from mcp_config_hub.formatters import JSONFormatter, YAMLFormatter, TOMLFormatter
+
+from mcp_config_hub.formatters import JSONFormatter, TOMLFormatter, YAMLFormatter
+
 
 def test_json_formatter():
     f = JSONFormatter()
     data = {"a": 1}
     out = f.format(data)
-    assert "\"a\": 1" in out
+    assert '"a": 1' in out
+
 
 def test_yaml_formatter():
     f = YAMLFormatter()
@@ -13,15 +16,18 @@ def test_yaml_formatter():
     out = f.format(data)
     assert "a: 1" in out or "a: 1\n" in out
 
+
 def test_toml_formatter():
     f = TOMLFormatter()
     data = {"a": 1}
     out = f.format(data)
     assert "a = 1" in out or "a = 1\n" in out
 
+
 def test_yaml_formatter_error():
     # PyYAMLが未インストール時の例外テスト
     import sys
+
     orig_yaml = sys.modules.get("yaml")
     sys.modules["yaml"] = None
     try:
@@ -34,9 +40,11 @@ def test_yaml_formatter_error():
         else:
             del sys.modules["yaml"]
 
+
 def test_toml_formatter_error():
     # tomli_wが未インストール時の例外テスト
     import sys
+
     orig_tomli_w = sys.modules.get("tomli_w")
     sys.modules["tomli_w"] = None
     try:
