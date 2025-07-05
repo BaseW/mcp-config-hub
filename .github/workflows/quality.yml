@@ -17,6 +17,8 @@ jobs:
           python-version: "3.11"
       - name: Install uv
         run: pip install uv
+      - name: Create venv for uv
+        run: uv venv
       - name: Run quality checks
         run: bash scripts/quality.sh
       - name: Run tests
