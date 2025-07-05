@@ -1,6 +1,5 @@
 import click
 import sys
-import json
 from .config import ConfigManager
 from .storage import StorageManager
 from .formatters import get_formatter

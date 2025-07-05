@@ -1,6 +1,4 @@
 import platform
-import os
-from pathlib import Path
 from mcp_config_hub.storage import StorageManager
 
 def test_get_config_path_user(monkeypatch):

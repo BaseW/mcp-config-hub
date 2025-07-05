@@ -1,4 +1,3 @@
-import pytest
 from mcp_config_hub import diff_utils
 
 def test_generate_config_diff_no_diff():

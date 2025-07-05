@@ -1,6 +1,4 @@
 import pytest
-import tempfile
-import os
 
 @pytest.fixture(autouse=True)
 def patch_home_and_cwd(tmp_path, monkeypatch):

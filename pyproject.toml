@@ -25,6 +25,12 @@ mcp-config = "mcp_config_hub.cli:cli"
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "ruff",
+    "mypy",
+    "black",
+    "isort",
+    "bandit",
+    "pip-audit",
 ]
 
 [tool.setuptools.packages.find]

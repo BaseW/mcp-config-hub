@@ -2,7 +2,7 @@ import json
 import os
 import platform
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 
 class StorageManager:
@@ -46,7 +46,7 @@ class StorageManager:
         """Get project configuration path."""
         return Path.cwd() / ".mcp-config-hub" / "config.json"
     
-    def load_config(self, scope: str) -> Dict[str, Any]:
+    def load_config(self, scope: str) -> dict[str, Any]:
         """Load configuration from the specified scope."""
         config_path = self.get_config_path(scope)
         
@@ -59,7 +59,7 @@ class StorageManager:
         except (json.JSONDecodeError, IOError):
             return self._get_default_config()
     
-    def save_config(self, config: Dict[str, Any], scope: str) -> None:
+    def save_config(self, config: dict[str, Any], scope: str) -> None:
         """Save configuration to the specified scope."""
         config_path = self.get_config_path(scope)
         
@@ -76,7 +76,7 @@ class StorageManager:
                 temp_path.unlink()
             raise
     
-    def _get_default_config(self) -> Dict[str, Any]:
+    def _get_default_config(self) -> dict[str, Any]:
         """Get default configuration structure."""
         return {
             "mcpServers": {}

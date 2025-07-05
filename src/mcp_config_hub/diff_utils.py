@@ -1,9 +1,9 @@
 import json
 import difflib
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 
-def generate_config_diff(current_config: Dict[str, Any], new_config: Dict[str, Any], 
+def generate_config_diff(current_config: dict[str, Any], new_config: dict[str, Any], 
                         tool_name: str) -> Optional[str]:
     """Generate a readable diff between current and new configurations."""
     current_json = json.dumps(current_config, indent=2, sort_keys=True)
@@ -26,7 +26,7 @@ def generate_config_diff(current_config: Dict[str, Any], new_config: Dict[str, A
     return ''.join(diff)
 
 
-def has_changes(current_config: Dict[str, Any], new_config: Dict[str, Any]) -> bool:
+def has_changes(current_config: dict[str, Any], new_config: dict[str, Any]) -> bool:
     """Check if there are any changes between configurations."""
     current_json = json.dumps(current_config, indent=2, sort_keys=True)
     new_json = json.dumps(new_config, indent=2, sort_keys=True)

@@ -2,7 +2,8 @@ import json
 import os
 import platform
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
+
 import click
 from .diff_utils import generate_config_diff, has_changes
 
@@ -14,7 +15,7 @@ class BaseIntegration:
         """Get the configuration file path for this tool."""
         raise NotImplementedError
     
-    def read_config(self) -> Dict[str, Any]:
+    def read_config(self) -> dict[str, Any]:
         """Read configuration from the tool's config file."""
         config_path = self.get_config_path()
         if not config_path.exists():
@@ -26,7 +27,7 @@ class BaseIntegration:
         except (json.JSONDecodeError, IOError):
             return {}
     
-    def write_config(self, config: Dict[str, Any]) -> None:
+    def write_config(self, config: dict[str, Any]) -> None:
         """Write configuration to the tool's config file."""
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -34,11 +35,11 @@ class BaseIntegration:
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
     
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+    def sync_from_hub(self, hub_config: dict[str, Any]) -> None:
         """Sync configuration from MCP Config Hub to this tool."""
         raise NotImplementedError
     
-    def sync_from_hub_with_confirmation(self, hub_config: Dict[str, Any], tool_name: str) -> bool:
+    def sync_from_hub_with_confirmation(self, hub_config: dict[str, Any], tool_name: str) -> bool:
         """Sync configuration with diff display and user confirmation."""
         current_config = self.read_config()
         
@@ -61,11 +62,11 @@ class BaseIntegration:
             click.echo("Changes cancelled.")
             return False
     
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+    def _apply_hub_config(self, config: dict[str, Any], hub_config: dict[str, Any]) -> None:
         """Apply hub configuration to the target config. Override in subclasses."""
         raise NotImplementedError
     
-    def sync_to_hub(self) -> Dict[str, Any]:
+    def sync_to_hub(self) -> dict[str, Any]:
         """Sync configuration from this tool to MCP Config Hub format."""
         raise NotImplementedError
 
@@ -91,7 +92,7 @@ class VSCodeIntegration(BaseIntegration):
         """Get VSCode workspace MCP config path."""
         return Path.cwd() / ".vscode" / "mcp.json"
     
-    def read_config(self) -> Dict[str, Any]:
+    def read_config(self) -> dict[str, Any]:
         """Read configuration from VSCode settings, preferring workspace over user."""
         workspace_config_path = self.get_workspace_config_path()
         if workspace_config_path.exists():
@@ -104,7 +105,7 @@ class VSCodeIntegration(BaseIntegration):
         user_config = super().read_config()
         return user_config.get("mcp", {})
     
-    def write_config(self, config: Dict[str, Any]) -> None:
+    def write_config(self, config: dict[str, Any]) -> None:
         """Write configuration to VSCode workspace mcp.json."""
         workspace_config_path = self.get_workspace_config_path()
         workspace_config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -112,18 +113,18 @@ class VSCodeIntegration(BaseIntegration):
         with open(workspace_config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
     
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+    def sync_from_hub(self, hub_config: dict[str, Any]) -> None:
         """Sync MCP servers to VSCode workspace config."""
         if "mcpServers" in hub_config:
             vscode_config = {"servers": hub_config["mcpServers"]}
             self.write_config(vscode_config)
     
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+    def _apply_hub_config(self, config: dict[str, Any], hub_config: dict[str, Any]) -> None:
         """Apply hub configuration to VSCode MCP config."""
         if "mcpServers" in hub_config:
             config["servers"] = hub_config["mcpServers"]
     
-    def sync_to_hub(self) -> Dict[str, Any]:
+    def sync_to_hub(self) -> dict[str, Any]:
         """Extract MCP configuration from VSCode settings."""
         vscode_config = self.read_config()
         
@@ -150,7 +151,7 @@ class ClaudeDesktopIntegration(BaseIntegration):
         
         return base / "claude_desktop_config.json"
     
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+    def sync_from_hub(self, hub_config: dict[str, Any]) -> None:
         """Sync MCP servers to Claude Desktop config."""
         claude_config = self.read_config()
         
@@ -159,12 +160,12 @@ class ClaudeDesktopIntegration(BaseIntegration):
         
         self.write_config(claude_config)
     
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+    def _apply_hub_config(self, config: dict[str, Any], hub_config: dict[str, Any]) -> None:
         """Apply hub configuration to Claude Desktop config."""
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
     
-    def sync_to_hub(self) -> Dict[str, Any]:
+    def sync_to_hub(self) -> dict[str, Any]:
         """Extract MCP configuration from Claude Desktop config."""
         claude_config = self.read_config()
         
@@ -190,26 +191,26 @@ class CursorIntegration(BaseIntegration):
             return project_config
         return base / "mcp.json"
 
-    def read_config(self) -> Dict[str, Any]:
+    def read_config(self) -> dict[str, Any]:
         config = super().read_config()
         return config
 
-    def write_config(self, config: Dict[str, Any]) -> None:
+    def write_config(self, config: dict[str, Any]) -> None:
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+    def sync_from_hub(self, hub_config: dict[str, Any]) -> None:
         if "mcpServers" in hub_config:
             cursor_config = {"mcpServers": hub_config["mcpServers"]}
             self.write_config(cursor_config)
 
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+    def _apply_hub_config(self, config: dict[str, Any], hub_config: dict[str, Any]) -> None:
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
 
-    def sync_to_hub(self) -> Dict[str, Any]:
+    def sync_to_hub(self) -> dict[str, Any]:
         config = self.read_config()
         if "mcpServers" in config:
             return {"mcpServers": config["mcpServers"]}
@@ -228,26 +229,26 @@ class WindsurfIntegration(BaseIntegration):
             base = Path.home() / ".codeium" / "windsurf"
         return base / "mcp_config.json"
 
-    def read_config(self) -> Dict[str, Any]:
+    def read_config(self) -> dict[str, Any]:
         config = super().read_config()
         return config
 
-    def write_config(self, config: Dict[str, Any]) -> None:
+    def write_config(self, config: dict[str, Any]) -> None:
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+    def sync_from_hub(self, hub_config: dict[str, Any]) -> None:
         if "mcpServers" in hub_config:
             windsurf_config = {"mcpServers": hub_config["mcpServers"]}
             self.write_config(windsurf_config)
 
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+    def _apply_hub_config(self, config: dict[str, Any], hub_config: dict[str, Any]) -> None:
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
 
-    def sync_to_hub(self) -> Dict[str, Any]:
+    def sync_to_hub(self) -> dict[str, Any]:
         config = self.read_config()
         if "mcpServers" in config:
             return {"mcpServers": config["mcpServers"]}
@@ -270,26 +271,26 @@ class GeminiIntegration(BaseIntegration):
             base = Path.home() / ".gemini"
         return base / "settings.json"
 
-    def read_config(self) -> Dict[str, Any]:
+    def read_config(self) -> dict[str, Any]:
         config = super().read_config()
         return config
 
-    def write_config(self, config: Dict[str, Any]) -> None:
+    def write_config(self, config: dict[str, Any]) -> None:
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
-    def sync_from_hub(self, hub_config: Dict[str, Any]) -> None:
+    def sync_from_hub(self, hub_config: dict[str, Any]) -> None:
         if "mcpServers" in hub_config:
             gemini_config = {"mcpServers": hub_config["mcpServers"]}
             self.write_config(gemini_config)
 
-    def _apply_hub_config(self, config: Dict[str, Any], hub_config: Dict[str, Any]) -> None:
+    def _apply_hub_config(self, config: dict[str, Any], hub_config: dict[str, Any]) -> None:
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
 
-    def sync_to_hub(self) -> Dict[str, Any]:
+    def sync_to_hub(self) -> dict[str, Any]:
         config = self.read_config()
         if "mcpServers" in config:
             return {"mcpServers": config["mcpServers"]}
