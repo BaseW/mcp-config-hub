@@ -21,7 +21,10 @@ mcp-config get mcpServers.filesystem.command
 
 # Set a configuration value
 mcp-config set mcpServers.filesystem.command "npx"
-mcp-config set mcpServers.filesystem.args '["@modelcontextprotocol/server-filesystem", "/path/to/directory"]'
+mcp-config set mcpServers.filesystem.args '["@modelcontextprotocol/server-filesystem", "/path/to/directory"]
+
+# Set a default prompt
+mcp-config set-prompt "You are a helpful AI assistant." --scope user
 
 # Different output formats
 mcp-config list --format yaml
@@ -51,10 +54,26 @@ mcp-config sync vscode --direction to-hub
 mcp-config sync claude --direction from-hub
 mcp-config sync claude --direction to-hub
 
-# Sync with ChatGPT
-mcp-config sync chatgpt --direction from-hub
-mcp-config sync chatgpt --direction to-hub
+# Sync with Cursor
+mcp-config sync cursor --direction from-hub
+mcp-config sync cursor --direction to-hub
+
+# Sync with Windsurf
+mcp-config sync windsurf --direction from-hub
+mcp-config sync windsurf --direction to-hub
+
+# Sync with Gemini CLI
+mcp-config sync gemini --direction from-hub
+mcp-config sync gemini --direction to-hub
 ```
+
+## Supported Applications for Default Prompt
+
+- **VSCode (GitHub Copilot)**: Manages `.github/copilot-instructions.md`
+- **Cursor**: Manages `.cursor/rules/default_prompt.txt` (project-specific)
+- **Windsurf**: Manages `.windsurfrules` (project-specific)
+- **Gemini CLI**: Manages `GEMINI.md` (project-specific)
+- **Claude Desktop**: Direct prompt setting not supported; context provided via MCP server.
 
 ## Configuration Format
 

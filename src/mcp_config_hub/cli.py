@@ -74,6 +74,28 @@ def set(key, value, scope):
 
 
 @cli.command()
+@click.argument("prompt_content")
+@click.option(
+    "--scope",
+    default="user",
+    type=click.Choice(["global", "user", "project"]),
+    help="Configuration scope",
+)
+def set_prompt(prompt_content, scope):
+    """Set the default prompt content."""
+    try:
+        storage = StorageManager()
+        config_manager = ConfigManager(storage)
+
+        config_manager.set("default_prompt", prompt_content, scope)
+        click.echo(f"Set default prompt in {scope} configuration.")
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
 @click.option(
     "--format",
     "output_format",
