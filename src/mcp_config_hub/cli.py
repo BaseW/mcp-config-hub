@@ -383,5 +383,48 @@ def gemini(direction, force):
         sys.exit(1)
 
 
+@sync.command()
+@click.option(
+    "--direction",
+    default="from-hub",
+    type=click.Choice(["from-hub", "to-hub"]),
+    help="Sync direction",
+)
+@click.option("--force", is_flag=True, help="Skip confirmation prompt")
+def claude_code(direction, force):
+    """Sync with Claude Code CLI settings."""
+    try:
+        storage = StorageManager()
+        config_manager = ConfigManager(storage)
+        integration = get_integration("claude_code")
+
+        if direction == "from-hub":
+            hub_config = config_manager.list_all("merged")
+            if force:
+                integration.sync_from_hub(hub_config)
+                click.echo("Synced MCP Config Hub settings to Claude Code CLI")
+            else:
+                success = integration.sync_from_hub_with_confirmation(
+                    hub_config, "Claude Code CLI"
+                )
+                if success:
+                    click.echo("Synced MCP Config Hub settings to Claude Code CLI")
+                else:
+                    click.echo("Sync cancelled by user")
+        else:
+            hub_config = integration.sync_to_hub()
+            for key, value in hub_config.get("mcpServers", {}).items():
+                config_manager.set(f"mcpServers.{key}", value, "user")
+            if "default_prompt" in hub_config:
+                config_manager.set(
+                    "default_prompt", hub_config["default_prompt"], "user"
+                )
+            click.echo("Synced Claude Code CLI settings to MCP Config Hub")
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     cli()

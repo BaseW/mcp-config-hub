@@ -65,6 +65,10 @@ mcp-config sync windsurf --direction to-hub
 # Sync with Gemini CLI
 mcp-config sync gemini --direction from-hub
 mcp-config sync gemini --direction to-hub
+
+# Sync with Claude Code CLI
+mcp-config sync claude_code --direction from-hub
+mcp-config sync claude_code --direction to-hub
 ```
 
 ## Supported Applications for Default Prompt
@@ -74,6 +78,7 @@ mcp-config sync gemini --direction to-hub
 - **Windsurf**: Manages `.windsurfrules` (project-specific)
 - **Gemini CLI**: Manages `GEMINI.md` (project-specific)
 - **Claude Desktop**: Direct prompt setting not supported; context provided via MCP server.
+- **Claude Code CLI**: Manages `CLAUDE.md` (project-specific)
 
 ## Configuration Format
 

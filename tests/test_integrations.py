@@ -4,6 +4,9 @@ from pathlib import Path
 import pytest
 
 from mcp_config_hub.integrations import (
+    ClaudeCodeIntegration,  # Import the new integration
+)
+from mcp_config_hub.integrations import (
     ClaudeDesktopIntegration,
     CursorIntegration,
     GeminiIntegration,
@@ -142,6 +145,36 @@ def test_gemini_prompt_config(tmp_path, monkeypatch):
     assert not gemini_md_path.exists()
 
 
+def test_claude_code_integration_read_write(tmp_path, monkeypatch):
+    monkeypatch.setattr(platform, "system", lambda: "Darwin")
+    integration = ClaudeCodeIntegration()
+    config = {"mcpServers": {"foo": "bar"}}
+    integration.write_config(config)
+    read = integration.read_config()
+    assert read["mcpServers"] == {"foo": "bar"}
+    hub = integration.sync_to_hub()
+    assert hub["mcpServers"] == {"foo": "bar"}
+
+
+def test_claude_code_prompt_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "cwd", lambda: tmp_path)
+    integration = ClaudeCodeIntegration()
+    prompt_content = "Test Claude Code prompt."
+    integration._apply_hub_config({}, {"default_prompt": prompt_content})
+
+    claude_md_path = tmp_path / "CLAUDE.md"
+    assert claude_md_path.exists()
+    with open(claude_md_path, "r", encoding="utf-8") as f:
+        assert f.read() == prompt_content
+
+    hub_config = integration.sync_to_hub()
+    assert hub_config["default_prompt"] == prompt_content
+
+    # Test deletion
+    integration._apply_hub_config({}, {})
+    assert not claude_md_path.exists()
+
+
 def test_vscode_apply_hub_config(monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: "Darwin")
     integration = VSCodeIntegration()
@@ -187,6 +220,15 @@ def test_gemini_apply_hub_config(monkeypatch):
     assert config["mcpServers"] == {"a": 1}
 
 
+def test_claude_code_apply_hub_config(monkeypatch):
+    monkeypatch.setattr(platform, "system", lambda: "Darwin")
+    integration = ClaudeCodeIntegration()
+    config = {}
+    hub = {"mcpServers": {"a": 1}}
+    integration._apply_hub_config(config, hub)
+    assert config["mcpServers"] == {"a": 1}
+
+
 def test_get_integration():
     from mcp_config_hub.integrations import get_integration
 
@@ -195,6 +237,7 @@ def test_get_integration():
     assert isinstance(get_integration("cursor"), CursorIntegration)
     assert isinstance(get_integration("windsurf"), WindsurfIntegration)
     assert isinstance(get_integration("gemini"), GeminiIntegration)
+    assert isinstance(get_integration("claude_code"), ClaudeCodeIntegration)
     with pytest.raises(ValueError):
         get_integration("unknown")
 
@@ -208,4 +251,5 @@ def test_get_all_integrations():
     assert isinstance(integrations["cursor"], CursorIntegration)
     assert isinstance(integrations["windsurf"], WindsurfIntegration)
     assert isinstance(integrations["gemini"], GeminiIntegration)
-    assert len(integrations) == 5
+    assert isinstance(integrations["claude_code"], ClaudeCodeIntegration)
+    assert len(integrations) == 6
