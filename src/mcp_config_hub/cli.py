@@ -416,7 +416,9 @@ def claude_code(direction, force):
             for key, value in hub_config.get("mcpServers", {}).items():
                 config_manager.set(f"mcpServers.{key}", value, "user")
             if "default_prompt" in hub_config:
-                config_manager.set("default_prompt", hub_config["default_prompt"], "user")
+                config_manager.set(
+                    "default_prompt", hub_config["default_prompt"], "user"
+                )
             click.echo("Synced Claude Code CLI settings to MCP Config Hub")
 
     except Exception as e:

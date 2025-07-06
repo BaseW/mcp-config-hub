@@ -4,12 +4,14 @@ from pathlib import Path
 import pytest
 
 from mcp_config_hub.integrations import (
+    ClaudeCodeIntegration,  # Import the new integration
+)
+from mcp_config_hub.integrations import (
     ClaudeDesktopIntegration,
     CursorIntegration,
     GeminiIntegration,
     VSCodeIntegration,
     WindsurfIntegration,
-    ClaudeCodeIntegration, # Import the new integration
 )
 
 
