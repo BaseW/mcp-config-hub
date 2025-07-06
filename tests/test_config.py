@@ -36,3 +36,10 @@ def test_set_nested():
     cm = ConfigManager(DummyStorage())
     cm.set("a.b.c", 42)
     assert cm.get("a.b.c", scope="user") == 42
+
+
+def test_set_and_get_default_prompt():
+    cm = ConfigManager(DummyStorage())
+    prompt_content = "This is a test prompt."
+    cm.set("default_prompt", prompt_content, scope="user")
+    assert cm.get("default_prompt", scope="user") == prompt_content

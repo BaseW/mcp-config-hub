@@ -75,3 +75,30 @@
 }
 ```
 - Each server is listed under `mcpServers`. `command`/`args` for local, `serverUrl` for remote servers.
+
+## Default Prompt Configuration
+
+### VSCode (GitHub Copilot)
+
+- **Instructions File:** Create a file named `copilot-instructions.md` inside the `.github` directory at the root of your project. Copilot will automatically use the content of this file as instructions.
+- **Settings JSON:** You can also add instructions to your `settings.json` file (user or workspace) under the key `github.copilot.chat.instructions`.
+
+### Claude Desktop App
+
+- The Claude Desktop app does not have a direct feature to set a persistent custom system prompt.
+- The primary method to provide context is through the **Model Context Protocol (MCP)**. You can configure an MCP server in `claude_desktop_config.json` to provide contextual information, which can include instructions for the AI.
+
+### Cursor
+
+- **Rules for AI:** Default prompts can be set in `Cursor > Settings > Cursor Settings` under "Rules for AI".
+- **Project-specific Rules:** For project-specific prompts, you can create a `.cursor/rules` directory in your project's root.
+
+### Windsurf
+
+- **Global AI Rules:** Global prompts can be configured in the Windsurf settings panel.
+- **Workspace AI Rules:** Project-specific prompts can be set by creating a `.windsurfrules` file in the project's root directory.
+
+### Gemini CLI
+
+- **Project-specific Prompt:** Create a `GEMINI.md` file in the root of your project. The contents of this file will be used as the default prompt for that project.
+- **Global Prompt:** A global default prompt can be set using the `prompt` key in the `~/.gemini/settings.json` file, though this is less documented.

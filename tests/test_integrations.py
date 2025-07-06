@@ -1,4 +1,5 @@
 import platform
+from pathlib import Path
 
 import pytest
 
@@ -25,6 +26,21 @@ def test_vscode_integration_read_write(tmp_path, monkeypatch):
     assert hub["mcpServers"] == {"foo": "bar"}
 
 
+def test_vscode_prompt_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "cwd", lambda: tmp_path)
+    integration = VSCodeIntegration()
+    prompt_content = "Test VSCode prompt."
+    integration._apply_prompt_config(prompt_content)
+
+    copilot_instructions_path = tmp_path / ".github" / "copilot-instructions.md"
+    assert copilot_instructions_path.exists()
+    with open(copilot_instructions_path, "r", encoding="utf-8") as f:
+        assert f.read() == prompt_content
+
+    hub_config = integration.sync_to_hub()
+    assert hub_config["default_prompt"] == prompt_content
+
+
 def test_claude_desktop_integration_read_write(tmp_path, monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: "Darwin")
     integration = ClaudeDesktopIntegration()
@@ -47,6 +63,25 @@ def test_cursor_integration_read_write(tmp_path, monkeypatch):
     assert hub["mcpServers"] == {"foo": "bar"}
 
 
+def test_cursor_prompt_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "cwd", lambda: tmp_path)
+    integration = CursorIntegration()
+    prompt_content = "Test Cursor prompt."
+    integration._apply_hub_config({}, {"default_prompt": prompt_content})
+
+    cursor_rules_path = tmp_path / ".cursor" / "rules" / "default_prompt.txt"
+    assert cursor_rules_path.exists()
+    with open(cursor_rules_path, "r", encoding="utf-8") as f:
+        assert f.read() == prompt_content
+
+    hub_config = integration.sync_to_hub()
+    assert hub_config["default_prompt"] == prompt_content
+
+    # Test deletion
+    integration._apply_hub_config({}, {})
+    assert not cursor_rules_path.exists()
+
+
 def test_windsurf_integration_read_write(tmp_path, monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: "Darwin")
     integration = WindsurfIntegration()
@@ -58,6 +93,25 @@ def test_windsurf_integration_read_write(tmp_path, monkeypatch):
     assert hub["mcpServers"] == {"foo": "bar"}
 
 
+def test_windsurf_prompt_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "cwd", lambda: tmp_path)
+    integration = WindsurfIntegration()
+    prompt_content = "Test Windsurf prompt."
+    integration._apply_hub_config({}, {"default_prompt": prompt_content})
+
+    windsurf_rules_path = tmp_path / ".windsurfrules"
+    assert windsurf_rules_path.exists()
+    with open(windsurf_rules_path, "r", encoding="utf-8") as f:
+        assert f.read() == prompt_content
+
+    hub_config = integration.sync_to_hub()
+    assert hub_config["default_prompt"] == prompt_content
+
+    # Test deletion
+    integration._apply_hub_config({}, {})
+    assert not windsurf_rules_path.exists()
+
+
 def test_gemini_integration_read_write(tmp_path, monkeypatch):
     monkeypatch.setattr(platform, "system", lambda: "Darwin")
     integration = GeminiIntegration()
@@ -67,6 +121,25 @@ def test_gemini_integration_read_write(tmp_path, monkeypatch):
     assert read["mcpServers"] == {"foo": "bar"}
     hub = integration.sync_to_hub()
     assert hub["mcpServers"] == {"foo": "bar"}
+
+
+def test_gemini_prompt_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "cwd", lambda: tmp_path)
+    integration = GeminiIntegration()
+    prompt_content = "Test Gemini prompt."
+    integration._apply_hub_config({}, {"default_prompt": prompt_content})
+
+    gemini_md_path = tmp_path / "GEMINI.md"
+    assert gemini_md_path.exists()
+    with open(gemini_md_path, "r", encoding="utf-8") as f:
+        assert f.read() == prompt_content
+
+    hub_config = integration.sync_to_hub()
+    assert hub_config["default_prompt"] == prompt_content
+
+    # Test deletion
+    integration._apply_hub_config({}, {})
+    assert not gemini_md_path.exists()
 
 
 def test_vscode_apply_hub_config(monkeypatch):
@@ -124,3 +197,15 @@ def test_get_integration():
     assert isinstance(get_integration("gemini"), GeminiIntegration)
     with pytest.raises(ValueError):
         get_integration("unknown")
+
+
+def test_get_all_integrations():
+    from mcp_config_hub.integrations import get_all_integrations
+
+    integrations = get_all_integrations()
+    assert isinstance(integrations["vscode"], VSCodeIntegration)
+    assert isinstance(integrations["claude"], ClaudeDesktopIntegration)
+    assert isinstance(integrations["cursor"], CursorIntegration)
+    assert isinstance(integrations["windsurf"], WindsurfIntegration)
+    assert isinstance(integrations["gemini"], GeminiIntegration)
+    assert len(integrations) == 5
