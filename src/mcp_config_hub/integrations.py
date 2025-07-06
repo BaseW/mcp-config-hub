@@ -2,7 +2,7 @@ import json
 import os
 import platform
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import click
 
@@ -49,60 +49,71 @@ class BaseIntegration:
         new_config = current_config.copy()
         self._apply_hub_config(new_config, hub_config)
 
-        # Handle prompt specific logic outside of JSON config for file-based prompts
-        # This part needs to be handled by each integration's _apply_hub_config
-        # or a separate method called from sync_from_hub.
-        # For now, I'll integrate it directly into _apply_hub_config for simplicity.
-
         if not has_changes(current_config, new_config):
             # Check for prompt file changes if applicable
-            # This is a simplification, a more robust solution would involve
-            # comparing file contents or hashes.
             if tool_name == "VSCode" and "default_prompt" in hub_config:
-                copilot_instructions_path = Path.cwd() / ".github" / "copilot-instructions.md"
+                copilot_instructions_path = (
+                    Path.cwd() / ".github" / "copilot-instructions.md"
+                )
                 if copilot_instructions_path.exists():
                     with open(copilot_instructions_path, "r", encoding="utf-8") as f:
                         if f.read() == hub_config["default_prompt"]:
-                            click.echo(f"No changes needed for {tool_name} configuration.")
+                            click.echo(
+                                f"No changes needed for {tool_name} configuration."
+                            )
                             return True
                 else:
-                    # If file doesn't exist but prompt is in hub_config, there are changes
-                    click.echo(f"Changes needed for {tool_name} configuration (prompt file).")
+                    click.echo(
+                        f"Changes needed for {tool_name} configuration (prompt file)."
+                    )
                     return False
             elif tool_name == "Cursor" and "default_prompt" in hub_config:
-                cursor_rules_path = Path.cwd() / ".cursor" / "rules" / "default_prompt.txt" # Assuming a default file name
+                cursor_rules_path = (
+                    Path.cwd() / ".cursor" / "rules" / "default_prompt.txt"
+                )
                 if cursor_rules_path.exists():
                     with open(cursor_rules_path, "r", encoding="utf-8") as f:
                         if f.read() == hub_config["default_prompt"]:
-                            click.echo(f"No changes needed for {tool_name} configuration.")
+                            click.echo(
+                                f"No changes needed for {tool_name} configuration."
+                            )
                             return True
                 else:
-                    click.echo(f"Changes needed for {tool_name} configuration (prompt file).")
+                    click.echo(
+                        f"Changes needed for {tool_name} configuration (prompt file)."
+                    )
                     return False
             elif tool_name == "Windsurf" and "default_prompt" in hub_config:
                 windsurf_rules_path = Path.cwd() / ".windsurfrules"
                 if windsurf_rules_path.exists():
                     with open(windsurf_rules_path, "r", encoding="utf-8") as f:
                         if f.read() == hub_config["default_prompt"]:
-                            click.echo(f"No changes needed for {tool_name} configuration.")
+                            click.echo(
+                                f"No changes needed for {tool_name} configuration."
+                            )
                             return True
                 else:
-                    click.echo(f"Changes needed for {tool_name} configuration (prompt file).")
+                    click.echo(
+                        f"Changes needed for {tool_name} configuration (prompt file)."
+                    )
                     return False
             elif tool_name == "Gemini CLI" and "default_prompt" in hub_config:
                 gemini_md_path = Path.cwd() / "GEMINI.md"
                 if gemini_md_path.exists():
                     with open(gemini_md_path, "r", encoding="utf-8") as f:
                         if f.read() == hub_config["default_prompt"]:
-                            click.echo(f"No changes needed for {tool_name} configuration.")
+                            click.echo(
+                                f"No changes needed for {tool_name} configuration."
+                            )
                             return True
                 else:
-                    click.echo(f"Changes needed for {tool_name} configuration (prompt file).")
+                    click.echo(
+                        f"Changes needed for {tool_name} configuration (prompt file)."
+                    )
                     return False
             else:
                 click.echo(f"No changes needed for {tool_name} configuration.")
                 return True
-
 
         diff = generate_config_diff(current_config, new_config, tool_name)
         if diff:
@@ -111,7 +122,6 @@ class BaseIntegration:
 
         if click.confirm(f"\nApply these changes to {tool_name}?"):
             self.write_config(new_config)
-            # Apply prompt changes after confirming
             if "default_prompt" in hub_config:
                 self._apply_prompt_config(hub_config["default_prompt"])
             return True
@@ -120,16 +130,16 @@ class BaseIntegration:
             return False
 
     def _apply_hub_config(
-        self, config: dict[str, Any], hub_config: dict[str, Any]
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
     ) -> None:
         """Apply hub configuration to the target config. Override in subclasses."""
         raise NotImplementedError
 
     def _apply_prompt_config(self, prompt_content: str) -> None:
         """Apply default prompt from hub configuration to the tool's specific prompt setting."""
-        pass # Default implementation does nothing, subclasses override
+        pass
 
-    def sync_to_hub(self) -> dict[str, Any]:
+    def sync_to_hub(self) -> Dict[str, Any]:
         """Sync configuration from this tool to MCP Config Hub format."""
         raise NotImplementedError
 
@@ -141,7 +151,6 @@ class VSCodeIntegration(BaseIntegration):
         self.system = platform.system()
 
     def get_config_path(self) -> Path:
-        """Get VSCode user settings path."""
         if self.system == "Darwin":
             base = Path.home() / "Library" / "Application Support" / "Code" / "User"
         elif self.system == "Windows":
@@ -156,11 +165,9 @@ class VSCodeIntegration(BaseIntegration):
         return base / "settings.json"
 
     def get_workspace_config_path(self) -> Path:
-        """Get VSCode workspace MCP config path."""
         return Path.cwd() / ".vscode" / "mcp.json"
 
-    def read_config(self) -> dict[str, Any]:
-        """Read configuration from VSCode settings, preferring workspace over user."""
+    def read_config(self) -> Dict[str, Any]:
         workspace_config_path = self.get_workspace_config_path()
         if workspace_config_path.exists():
             try:
@@ -172,8 +179,7 @@ class VSCodeIntegration(BaseIntegration):
         user_config = super().read_config()
         return user_config.get("mcp", {})
 
-    def write_config(self, config: dict[str, Any]) -> None:
-        """Write configuration to VSCode workspace mcp.json."""
+    def write_config(self, config: Dict[str, Any]) -> None:
         workspace_config_path = self.get_workspace_config_path()
         workspace_config_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -181,36 +187,36 @@ class VSCodeIntegration(BaseIntegration):
             json.dump(config, f, indent=2, ensure_ascii=False)
 
     def _apply_hub_config(
-        self, config: dict[str, Any], hub_config: dict[str, Any]
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
     ) -> None:
-        """Apply hub configuration to VSCode MCP config and handle default prompt."""
         if "mcpServers" in hub_config:
             config["servers"] = hub_config["mcpServers"]
+        if "default_prompt" in hub_config:
+            if "prompts" not in config:
+                config["prompts"] = {}
+            config["prompts"]["default_prompt"] = hub_config["default_prompt"]
 
     def _apply_prompt_config(self, prompt_content: str) -> None:
-        """Write the default prompt to .github/copilot-instructions.md."""
         copilot_dir = Path.cwd() / ".github"
         copilot_dir.mkdir(parents=True, exist_ok=True)
         copilot_instructions_path = copilot_dir / "copilot-instructions.md"
         with open(copilot_instructions_path, "w", encoding="utf-8") as f:
             f.write(prompt_content)
 
-    def sync_to_hub(self) -> dict[str, Any]:
-        """Extract MCP configuration and default prompt from VSCode settings."""
+    def sync_to_hub(self) -> Dict[str, Any]:
         vscode_config = self.read_config()
-        hub_config = {"mcpServers": {}}
+        hub_config: Dict[str, Any] = {"mcpServers": {}}
 
         if "servers" in vscode_config:
             hub_config["mcpServers"] = vscode_config["servers"]
 
-        # Read copilot-instructions.md
         copilot_instructions_path = Path.cwd() / ".github" / "copilot-instructions.md"
         if copilot_instructions_path.exists():
             try:
                 with open(copilot_instructions_path, "r", encoding="utf-8") as f:
                     hub_config["default_prompt"] = f.read()
             except IOError:
-                pass # Ignore if file cannot be read
+                pass
 
         return hub_config
 
@@ -222,7 +228,6 @@ class ClaudeDesktopIntegration(BaseIntegration):
         self.system = platform.system()
 
     def get_config_path(self) -> Path:
-        """Get Claude Desktop config path."""
         if self.system == "Darwin":
             base = Path.home() / "Library" / "Application Support" / "Claude"
         elif self.system == "Windows":
@@ -236,15 +241,12 @@ class ClaudeDesktopIntegration(BaseIntegration):
         return base / "claude_desktop_config.json"
 
     def _apply_hub_config(
-        self, config: dict[str, Any], hub_config: dict[str, Any]
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
     ) -> None:
-        """Apply hub configuration to Claude Desktop config."""
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
-        # No direct prompt setting for Claude Desktop, handled via MCP server config if applicable.
 
-    def sync_to_hub(self) -> dict[str, Any]:
-        """Extract MCP configuration from Claude Desktop config."""
+    def sync_to_hub(self) -> Dict[str, Any]:
         claude_config = self.read_config()
 
         if "mcpServers" in claude_config:
@@ -264,24 +266,23 @@ class CursorIntegration(BaseIntegration):
             base = Path(os.environ.get("USERPROFILE", Path.home())) / ".cursor"
         else:
             base = Path.home() / ".cursor"
-        # Prefer project config if exists
         project_config = Path.cwd() / ".cursor" / "mcp.json"
         if project_config.exists():
             return project_config
         return base / "mcp.json"
 
-    def read_config(self) -> dict[str, Any]:
+    def read_config(self) -> Dict[str, Any]:
         config = super().read_config()
         return config
 
-    def write_config(self, config: dict[str, Any]) -> None:
+    def write_config(self, config: Dict[str, Any]) -> None:
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
     def _apply_hub_config(
-        self, config: dict[str, Any], hub_config: dict[str, Any]
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
     ) -> None:
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
@@ -295,13 +296,13 @@ class CursorIntegration(BaseIntegration):
     def _write_cursor_rules(self, prompt_content: str) -> None:
         cursor_rules_dir = Path.cwd() / ".cursor" / "rules"
         cursor_rules_dir.mkdir(parents=True, exist_ok=True)
-        cursor_rules_path = cursor_rules_dir / "default_prompt.txt" # Using a default file name
+        cursor_rules_path = cursor_rules_dir / "default_prompt.txt"
         with open(cursor_rules_path, "w", encoding="utf-8") as f:
             f.write(prompt_content)
 
-    def sync_to_hub(self) -> dict[str, Any]:
+    def sync_to_hub(self) -> Dict[str, Any]:
         config = self.read_config()
-        hub_config = {"mcpServers": {}}
+        hub_config: Dict[str, Any] = {"mcpServers": {}}
         if "mcpServers" in config:
             hub_config["mcpServers"] = config["mcpServers"]
 
@@ -322,7 +323,6 @@ class WindsurfIntegration(BaseIntegration):
         self.system = platform.system()
 
     def get_config_path(self) -> Path:
-        # Only user-level config is documented
         if self.system == "Windows":
             base = (
                 Path(os.environ.get("USERPROFILE", Path.home()))
@@ -333,18 +333,18 @@ class WindsurfIntegration(BaseIntegration):
             base = Path.home() / ".codeium" / "windsurf"
         return base / "mcp_config.json"
 
-    def read_config(self) -> dict[str, Any]:
+    def read_config(self) -> Dict[str, Any]:
         config = super().read_config()
         return config
 
-    def write_config(self, config: dict[str, Any]) -> None:
+    def write_config(self, config: Dict[str, Any]) -> None:
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
     def _apply_hub_config(
-        self, config: dict[str, Any], hub_config: dict[str, Any]
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
     ) -> None:
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
@@ -360,9 +360,9 @@ class WindsurfIntegration(BaseIntegration):
         with open(windsurf_rules_path, "w", encoding="utf-8") as f:
             f.write(prompt_content)
 
-    def sync_to_hub(self) -> dict[str, Any]:
+    def sync_to_hub(self) -> Dict[str, Any]:
         config = self.read_config()
-        hub_config = {"mcpServers": {}}
+        hub_config: Dict[str, Any] = {"mcpServers": {}}
         if "mcpServers" in config:
             hub_config["mcpServers"] = config["mcpServers"]
 
@@ -383,29 +383,27 @@ class GeminiIntegration(BaseIntegration):
         self.system = platform.system()
 
     def get_config_path(self) -> Path:
-        # Prefer project config if exists
         project_config = Path.cwd() / ".gemini" / "settings.json"
         if project_config.exists():
             return project_config
-        # User-level config
         if self.system == "Windows":
             base = Path(os.environ.get("USERPROFILE", Path.home())) / ".gemini"
         else:
             base = Path.home() / ".gemini"
         return base / "settings.json"
 
-    def read_config(self) -> dict[str, Any]:
+    def read_config(self) -> Dict[str, Any]:
         config = super().read_config()
         return config
 
-    def write_config(self, config: dict[str, Any]) -> None:
+    def write_config(self, config: Dict[str, Any]) -> None:
         config_path = self.get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
     def _apply_hub_config(
-        self, config: dict[str, Any], hub_config: dict[str, Any]
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
     ) -> None:
         if "mcpServers" in hub_config:
             config["mcpServers"] = hub_config["mcpServers"]
@@ -421,9 +419,9 @@ class GeminiIntegration(BaseIntegration):
         with open(gemini_md_path, "w", encoding="utf-8") as f:
             f.write(prompt_content)
 
-    def sync_to_hub(self) -> dict[str, Any]:
+    def sync_to_hub(self) -> Dict[str, Any]:
         config = self.read_config()
-        hub_config = {"mcpServers": {}}
+        hub_config: Dict[str, Any] = {"mcpServers": {}}
         if "mcpServers" in config:
             hub_config["mcpServers"] = config["mcpServers"]
 
@@ -453,7 +451,7 @@ def get_integration(tool_name: str) -> BaseIntegration:
     return integrations[tool_name]()
 
 
-def get_all_integrations() -> dict[str, BaseIntegration]:
+def get_all_integrations() -> Dict[str, BaseIntegration]:
     """Get all available integration instances."""
     return {
         "vscode": VSCodeIntegration(),
