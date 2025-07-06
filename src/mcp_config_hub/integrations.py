@@ -111,6 +111,20 @@ class BaseIntegration:
                         f"Changes needed for {tool_name} configuration (prompt file)."
                     )
                     return False
+            elif tool_name == "Claude Code" and "default_prompt" in hub_config:
+                claude_md_path = Path.cwd() / "CLAUDE.md"
+                if claude_md_path.exists():
+                    with open(claude_md_path, "r", encoding="utf-8") as f:
+                        if f.read() == hub_config["default_prompt"]:
+                            click.echo(
+                                f"No changes needed for {tool_name} configuration."
+                            )
+                            return True
+                else:
+                    click.echo(
+                        f"Changes needed for {tool_name} configuration (prompt file)."
+                    )
+                    return False
             else:
                 click.echo(f"No changes needed for {tool_name} configuration.")
                 return True
@@ -435,6 +449,71 @@ class GeminiIntegration(BaseIntegration):
         return hub_config
 
 
+class ClaudeCodeIntegration(BaseIntegration):
+    """Integration with Claude Code CLI settings."""
+
+    def __init__(self):
+        self.system = platform.system()
+
+    def get_config_path(self) -> Path:
+        # Prioritize project-specific settings.json
+        project_config_path = Path.cwd() / ".claude" / "settings.json"
+        if project_config_path.exists():
+            return project_config_path
+
+        # Then user-specific settings.json
+        if self.system == "Windows":
+            base = (
+                Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+                / "Claude"
+            )
+        else:
+            base = Path.home() / ".claude"
+        return base / "settings.json"
+
+    def read_config(self) -> Dict[str, Any]:
+        config = super().read_config()
+        return config
+
+    def write_config(self, config: Dict[str, Any]) -> None:
+        config_path = self.get_config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+
+    def _apply_hub_config(
+        self, config: Dict[str, Any], hub_config: Dict[str, Any]
+    ) -> None:
+        if "mcpServers" in hub_config:
+            config["mcpServers"] = hub_config["mcpServers"]
+        if "default_prompt" in hub_config:
+            self._write_claude_md(hub_config["default_prompt"])
+        else:
+            claude_md_path = Path.cwd() / "CLAUDE.md"
+            if claude_md_path.exists():
+                claude_md_path.unlink()
+
+    def _write_claude_md(self, prompt_content: str) -> None:
+        claude_md_path = Path.cwd() / "CLAUDE.md"
+        with open(claude_md_path, "w", encoding="utf-8") as f:
+            f.write(prompt_content)
+
+    def sync_to_hub(self) -> Dict[str, Any]:
+        config = self.read_config()
+        hub_config: Dict[str, Any] = {"mcpServers": {}}
+        if "mcpServers" in config:
+            hub_config["mcpServers"] = config["mcpServers"]
+
+        claude_md_path = Path.cwd() / "CLAUDE.md"
+        if claude_md_path.exists():
+            try:
+                with open(claude_md_path, "r", encoding="utf-8") as f:
+                    hub_config["default_prompt"] = f.read()
+            except IOError:
+                pass
+        return hub_config
+
+
 def get_integration(tool_name: str) -> BaseIntegration:
     """Get integration instance for the specified tool."""
     integrations = {
@@ -443,6 +522,7 @@ def get_integration(tool_name: str) -> BaseIntegration:
         "cursor": CursorIntegration,
         "windsurf": WindsurfIntegration,
         "gemini": GeminiIntegration,
+        "claude_code": ClaudeCodeIntegration,
     }
 
     if tool_name not in integrations:
@@ -459,4 +539,5 @@ def get_all_integrations() -> Dict[str, BaseIntegration]:
         "cursor": CursorIntegration(),
         "windsurf": WindsurfIntegration(),
         "gemini": GeminiIntegration(),
+        "claude_code": ClaudeCodeIntegration(),
     }

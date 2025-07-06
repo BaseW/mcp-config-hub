@@ -76,6 +76,24 @@
 ```
 - Each server is listed under `mcpServers`. `command`/`args` for local, `serverUrl` for remote servers.
 
+## Claude Code CLI MCP Server Configuration
+
+- **User Settings:** `~/.claude/settings.json` (applies to all projects)
+- **Project Settings:**
+    - `.claude/settings.json` (project-specific, version controlled)
+    - `.claude/settings.local.json` (personal project preferences, not version controlled)
+- **Global MCP Server Configuration:** Within the `mcpServers` property of `~/.claude.json`.
+- **Key MCP-Related Settings in `settings.json`:**
+    - `MCP_TIMEOUT`: Timeout for MCP server to start.
+    - `MCP_TOOL_TIMEOUT`: Timeout for MCP tool execution.
+    - `MAX_MCP_OUTPUT_TOKENS`: Max tokens in responses from MCP tools.
+
+### Claude Code CLI Prompt Configuration
+
+- **`CLAUDE.md`**: Project-specific prompt setting. Create a `CLAUDE.md` file in the project root. Claude Code CLI will automatically load its content as additional context.
+- **`/init` command**: Use `/init` within Claude Code CLI to generate an initial `CLAUDE.md` file.
+- **`--system-prompt` flag**: Only for single-command executions, not for interactive sessions.
+
 ## Default Prompt Configuration
 
 ### VSCode (GitHub Copilot)
